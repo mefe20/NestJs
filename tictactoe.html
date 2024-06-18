@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Крестики-нолики</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/tictactoe.css">
+
+    <!-- Поддержка темной темы -->
+    <meta name="color-scheme" content="dark light">
+</head>
+<body>
+    <header>
+        <h1>Крестики-нолики</h1>
+        <div id="theme-toggle" class="theme-toggle"></div>
+        <a href="index.html" class="back-button">&lt;</a>
+    </header>
+    <main>
+        <div class="game">
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+        </div>
+        <div id="custom-alert" class="custom-alert">
+            <div class="custom-alert-content">
+                <span id="custom-alert-message"></span>
+                <button id="custom-alert-button">Продолжить</button>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2024 @Me_fe</p>
+    </footer>
+    <script src="scripts/tictactoe.js"></script>
+</body>
+</html>

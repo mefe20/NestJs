@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NestJS Tutorial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+ <!-- Поддержка темной темы -->
+ <meta name="color-scheme" content="dark light">
+</head>
+<body>
+    <header>
+        <h1>NestJS Tutorial</h1>
+    </header>
+    <div id="progress-container">
+        <div id="progressbar">
+            <div id="progress-indicator"></div>
+            <ul id="progress-steps">
+                <li data-step="1">Создание и настройка проекта</li>
+                <li data-step="2">Подключение к базе данных</li>
+                <li data-step="3">Создание сущностей и сервисов</li>
+                <li data-step="4">Настройка стратегий и Guard</li>
+                <li data-step="5">Конфигурация модулей</li>
+                <li data-step="6">Тестирование</li>
+            </ul>
+        </div>
+    </div>
+    <main>
+        <button id="back-to-theory" class="btn">Вернуться к теории</button>
+        <section id="section1">
+            <h2>1. Создание и настройка проекта</h2>
+            <p>Для начала, установите NestJS CLI, чтобы создать и управлять проектами NestJS.</p>
+            <pre><code>npm install -g @nestjs/cli</code></pre>
+            <p>Создайте новый проект и перейдите в его директорию:</p>
+            <pre><code>nest new auth-project</code></pre>
+            <pre><code>cd auth-project</code></pre>
+            <p>Установите необходимые зависимости для работы с PostgreSQL и JWT:</p>
+            <pre><code>npm install @nestjs/typeorm typeorm pg @nestjs/jwt @nestjs/passport passport passport-jwt bcrypt</code></pre>
+            <p>Установите типы для TypeScript:</p>
+            <pre><code>npm install @types/passport-jwt @types/bcrypt --save-dev</code></pre>
+            <p>Установите зависимость passport-local:</p>
+            <pre><code>npm install passport-local</code></pre>
+            <p><strong>Примечание:</strong> Не бойтесь ошибок, по мере продвижения они постепенно будут исправляться. Если ошибки все же остались, вероятно, вы не установили все зависимости. В этом случае выполните команду:</p>
+            <pre><code>npm install</code></pre>
+        </section>
+        <section id="section2">
+            <h2>2. Подключение к базе данных</h2>
+            <p>Настройте TypeORM для подключения к базе данных PostgreSQL. В файле <code>src/app.module.ts</code> добавьте следующие настройки:</p>
+            <pre><code>
+              import { Module } from '@nestjs/common';
+              import { TypeOrmModule } from '@nestjs/typeorm';
+              import { AuthModule } from './auth/auth.module';
+              import { UsersModule } from './users/users.module';
+              import { User } from './users/user.entity';
+              import { AppController } from './app.controller';
+              import { AppService } from './app.service';
+              
+              @Module({
+                imports: [
+                  TypeOrmModule.forRoot({
+                    type: 'postgres',
+                    host: 'localhost',
+                    port: 5432,
+                    username: 'postgres',
+                    password: 'sa',
+                    database: 'meow',
+                    entities: [User],
+                    synchronize: true,
+                  }),
+                  AuthModule,
+                  UsersModule,
+                ],
+                controllers: [AppController],
+                providers: [AppService],
+              })
+              export class AppModule {}              
+            </code></pre>
+            <p>Теперь откройте файл <code>src/main.ts</code> и добавьте код для логирования успешного подключения к базе данных:</p>
+            <pre><code>
+                import { NestFactory } from '@nestjs/core';
+                import { AppModule } from './app.module';
+                import { Logger } from '@nestjs/common';
+                import { DataSource } from 'typeorm';
+                
+                async function bootstrap() {
+                  const app = await NestFactory.create(AppModule);
+                  const logger = new Logger('Bootstrap');
+                  const dataSource = app.get(DataSource);
+                
+                  try {
+                    if (!dataSource.isInitialized) {
+                      await dataSource.initialize();
+                    }
+                    const options = dataSource.options;
+                    logger.log(`Успешное подключение к базе данных, порт: ${(options as any).port}`);
+                  } catch (error) {
+                    logger.error('Ошибка подключения к базе данных', error);
+                  }
+                
+                  await app.listen(3000);
+                  logger.log('Приложение запущено на http://localhost:3000');
+                }
+                bootstrap();
+                </code></pre>
+        </section>
+        <section id="section3">
+            <h2>3. Создание сущностей и сервисов</h2>
+            <p><strong>Создание сущности пользователя:</strong></p>
+            <pre><code>nest g module users</code></pre>
+            <pre><code>nest g service users</code></pre>
+            <pre><code>nest g controller users</code></pre>
+            <p>Эти команды создают модуль, сервис и контроллер для пользователей.</p>
+            <p>Создайте файл <code>src/users/user.entity.ts</code></p>
+            <pre><code>
+              import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+              
+              @Entity()
+              export class User {
+                @PrimaryGeneratedColumn()
+                id: number;
+              
+                @Column({ unique: true })
+                username: string;
+              
+                @Column()
+                password: string;
+              }
+              </code></pre>
+            <p>Этот код определяет сущность пользователя, которая будет храниться в базе данных.</p>
+            <p><strong>Настройка UsersService и UsersController:</strong></p>
+            <p>Обновите файл <code>src/users/users.service.ts</code></p>
+            <pre><code>
+              import { Injectable } from '@nestjs/common';
+              import { InjectRepository } from '@nestjs/typeorm';
+              import { Repository } from 'typeorm';
+              import { User } from './user.entity';
+              import * as bcrypt from 'bcrypt';
+              
+              @Injectable()
+              export class UsersService {
+                constructor(
+                  @InjectRepository(User)
+                  private usersRepository: Repository&lt;User&gt;,
+                ) {}
+              
+                async findOne(username: string): Promise&lt;User | undefined&gt; {
+                  return this.usersRepository.findOne({ where: { username } });
+                }
+              
+                async create(username: string, password: string): Promise&lt;User&gt; {
+                  const hashedPassword = await bcrypt.hash(password, 10);
+                  const user = this.usersRepository.create({ username, password: hashedPassword });
+                  return this.usersRepository.save(user);
+                }
+              }
+            </code></pre>
+            <p>Этот код определяет сервис для работы с пользователями.</p>
+            <p>Обновите файл <code>src/users/users.controller.ts</code></p>
+            <pre><code>
+              import { Controller, Post, Body } from '@nestjs/common';
+              import { UsersService } from './users.service';
+              
+              @Controller('users')
+              export class UsersController {
+                constructor(private readonly usersService: UsersService) {}
+              
+                @Post('register')
+                async register(@Body() body: { username: string, password: string }) {
+                  return this.usersService.create(body.username, body.password);
+                }
+              }
+            </code></pre>
+            <p>Этот код определяет контроллер для регистрации пользователей.</p>
+            <p>Обновите файл <code>src/users/users.module.ts</code></p>
+            <pre><code>
+              import { Module } from '@nestjs/common';
+              import { TypeOrmModule } from '@nestjs/typeorm';
+              import { UsersService } from './users.service';
+              import { UsersController } from './users.controller';
+              import { User } from './user.entity';
+              
+              @Module({
+                imports: [TypeOrmModule.forFeature([User])],
+                providers: [UsersService],
+                controllers: [UsersController],
+                exports: [UsersService],
+              })
+              export class UsersModule {}
+            </code></pre>
+
+            <p><strong>Создание модуля аутентификации:</strong></p>
+            <pre><code>nest g module auth</code></pre>
+            <pre><code>nest g service auth</code></pre>
+            <pre><code>nest g controller auth</code></pre>
+            <p>Эти команды создают модуль, сервис и контроллер для авторизации.</p>
+            <p>Обновите файл <code>src/auth/auth.service.ts</code></p>
+            <pre><code>
+                import { Injectable } from '@nestjs/common';
+                import { UsersService } from '../users/users.service';
+                import { JwtService } from '@nestjs/jwt';
+                import * as bcrypt from 'bcrypt';
+                
+                @Injectable()
+                export class AuthService {
+                  constructor(
+                    private readonly usersService: UsersService,
+                    private readonly jwtService: JwtService,
+                  ) {}
+                
+                  async validateUser(username: string, password: string): Promise&lt;any&gt; {
+                    const user = await this.usersService.findOne(username);
+                    if (user && await bcrypt.compare(password, user.password)) {
+                      const { password, ...result } = user;
+                      return result;
+                    }
+                    return null;
+                  }
+                
+                  async login(user: any) {
+                    const payload = { username: user.username, sub: user.id };
+                    return {
+                      access_token: this.jwtService.sign(payload),
+                    };
+                  }
+                }
+              </code></pre>
+            <p>Этот код определяет сервис для регистрации, валидации и аутентификации пользователей.</p>
+            <p>Обновите файл <code>src/auth/auth.controller.ts</code></p>
+            <pre><code>
+              import { Controller, Request, Post, UseGuards } from '@nestjs/common';
+              import { AuthService } from './auth.service';
+              import { LocalAuthGuard } from './local-auth.guard';
+              
+              @Controller('auth')
+              export class AuthController {
+                constructor(private authService: AuthService) {}
+              
+                @UseGuards(LocalAuthGuard)
+                @Post('login')
+                async login(@Request() req) {
+                  return this.authService.login(req.user);
+                }
+              }
+            </code></pre>
+            <p>Этот код определяет контроллер для обработки запросов на регистрацию и авторизацию.</p>
+        </section>
+        <section id="section4">
+            <h2>4. Настройка стратегий и Guard</h2>
+            <p><strong>Настройка LocalStrategy и JwtStrategy:</strong></p>
+            <p>Создайте файл <code>src/auth/local.strategy.ts</code></p>
+            <pre><code>
+              import { Strategy } from 'passport-local';
+              import { PassportStrategy } from '@nestjs/passport';
+              import { Injectable, UnauthorizedException } from '@nestjs/common';
+              import { AuthService } from './auth.service';
+
+              @Injectable()
+              export class LocalStrategy extends PassportStrategy(Strategy) {
+                constructor(private authService: AuthService) {
+                  super();
+                }
+
+                async validate(username: string, password: string): Promise&lt;any&gt; {
+                  const user = await this.authService.validateUser(username, password);
+                  if (!user) {
+                    throw new UnauthorizedException();
+                  }
+                  return user;
+                }
+              }
+              </code></pre>
+            <p>Этот код определяет стратегию локальной аутентификации, используя имя пользователя и пароль.</p>
+            <p>Создайте файл <code>src/auth/jwt.strategy.ts</code></p>
+            <pre><code>
+              import { Strategy, ExtractJwt } from 'passport-jwt';
+              import { PassportStrategy } from '@nestjs/passport';
+              import { Injectable } from '@nestjs/common';
+              
+              @Injectable()
+              export class JwtStrategy extends PassportStrategy(Strategy) {
+                constructor() {
+                  super({
+                    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+                    ignoreExpiration: false,
+                    secretOrKey: 'your_secret_key',
+                  });
+                }
+              
+                async validate(payload: any) {
+                  return { userId: payload.sub, username: payload.username };
+                }
+              }
+              </code></pre>
+            <p>Этот код определяет стратегию JWT для защиты маршрутов.</p>
+            <p>Создайте файл <code>src/auth/constants.ts</code></p>
+            <pre><code>
+              export const jwtConstants = {
+              secret: 'your_secret_key', // Секретный ключ для подписи JWT
+            };
+          </code></pre>
+            <p>Этот файл содержит секретный ключ для подписи JWT.</p>
+            <p><strong>Настройка LocalAuthGuard и JwtAuthGuard:</strong></p>
+            <p>Создайте файл <code>src/auth/local-auth.guard.ts</code></p>
+            <pre><code>
+              import { Injectable } from '@nestjs/common';
+              import { AuthGuard } from '@nestjs/passport';
+              
+              @Injectable()
+              export class LocalAuthGuard extends AuthGuard('local') {}
+            </code></pre>
+            <p>Этот код определяет guard для локальной аутентификации.</p>
+            <p>Создайте файл <code>src/auth/jwt-auth.guard.ts</code></p>
+            <pre><code>
+              import { Injectable } from '@nestjs/common';
+              import { AuthGuard } from '@nestjs/passport';
+              
+              @Injectable()
+              export class JwtAuthGuard extends AuthGuard('jwt') {}
+            </code></pre>
+            <p>Этот код определяет guard для JWT аутентификации.</п>
+        </section>
+        <section id="section5">
+            <h2>5. Конфигурация модулей</h2>
+            <p>Обновите файл <code>src/auth/auth.module.ts</code></п>
+            <pre><code>
+              import { Module } from '@nestjs/common';
+              import { TypeOrmModule } from '@nestjs/typeorm';
+              import { AuthService } from './auth.service';
+              import { AuthController } from './auth.controller';
+              import { User } from '../users/user.entity';
+              import { PassportModule } from '@nestjs/passport';
+              import { JwtModule } from '@nestjs/jwt';
+              import { LocalStrategy } from './local.strategy';
+              import { JwtStrategy } from './jwt.strategy';
+              import { jwtConstants } from './constants';
+              import { UsersModule } from '../users/users.module'; 
+              @Module({
+                imports: [
+                  TypeOrmModule.forFeature([User]),
+                  PassportModule,
+                  JwtModule.register({
+                    secret: jwtConstants.secret,
+                    signOptions: { expiresIn: '60m' },
+                  }),
+                  UsersModule, 
+                ],
+                providers: [AuthService, LocalStrategy, JwtStrategy],
+                controllers: [AuthController],
+              })
+              export class AuthModule {}
+            </code></pre>
+        </section>
+        <section id="section6">
+            <h2>6. Тестирование</h2>
+            <p>Используйте Postman для тестирования API. Пример регистрации пользователя (POST):</p>
+            <pre><code>http://localhost:3000/users/register</code></pre>
+            <pre><code>
+              { 
+                "username": "testuser",
+                "password": "testpassword" 
+              }
+            </code></pre>
+            <p>Пример авторизации пользователя (POST):</p>
+            <pre><code>http://localhost:3000/auth/login</code></pre>
+            <pre><code>
+              { 
+                "username": "testuser", 
+                "password": "testpassword" 
+              }
+          </code></pre>
+            <!-- <img src="images/example-testing.png" alt="Пример тестирования"> -->
+        </section>
+        <section id="section7">
+            <h2 id="celebrate-link">Молодец!</h2>
+            <p>Поздравляем с созданием первой регистрации и авторизации с помощью NestJS!</p>
+            <div id="dancing-cat-container">
+                <img src="images/gianbortion-cat.gif" alt="Танцующий котик" width="320" height="240">
+            </div>
+        </section>
+        <audio id="celebrate-sound" src="audio/yipee .mp3" preload="auto"></audio>
+    </main>
+    <div id="theme-toggle" class="theme-toggle"></div>
+    <div id="copy-tooltip">Скопировано!</div>
+    <footer>
+      <p>&copy; 2024 @Me_fe</p>
+    </footer>
+    <script src="scripts/main.js"></script>
+</body>
+</html>
