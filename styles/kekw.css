@@ -1,0 +1,115 @@
+body {
+    font-family: 'Comfortaa', cursive;
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #121212;
+}
+
+#cat-container {
+    text-align: center;
+    z-index: 10; /* Фиксируем на переднем плане */
+    position: relative; /* Добавляем относительное позиционирование */
+}
+
+#meme-cat {
+    width: 300px;
+    cursor: pointer;
+    z-index: 11; /* Фиксируем на переднем плане, чуть выше контейнера */
+    position: relative; /* Добавляем относительное позиционирование */
+}
+
+.heart, .small-heart {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: red;
+    transform: rotate(45deg);
+    z-index: 20; /* Задаем z-index выше, чтобы сердечки были перед изображением */
+}
+
+.heart::before, .heart::after, .small-heart::before, .small-heart::after {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: red;
+    border-radius: 50%;
+}
+
+.heart::before, .small-heart::before {
+    top: -25px;
+    left: 0;
+}
+
+.heart::after, .small-heart::after {
+    top: 0;
+    left: -25px;
+}
+
+.back-button {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    font-size: 2em;
+    text-decoration: none;
+    border: 2px solid var(--highlight-color);
+    padding: 10px 20px;
+    border-radius: 50%;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    transition: transform 0.3s ease, color 0.3s ease, background-color 0.3s ease;
+}
+
+.back-button:hover {
+    transform: scale(1.2);
+    color: var(--highlight-color);
+    background-color: var(--toggle-background);
+}
+
+.back-button:active {
+    transform: scale(1.1);
+}
+
+/* Темная тема */
+body.dark-theme .back-button {
+    color: #f0f0f0;
+    background-color: #121212;
+    border-color: #00ff00;
+}
+
+body.dark-theme .back-button:hover {
+    color: #00ff00;
+    background-color: #f0f0f0;
+}
+
+/* Светлая тема */
+body.light-theme .back-button {
+    color: #000000;
+    background-color: #ffffff;
+    border-color: #00ff00;
+}
+
+body.light-theme .back-button:hover {
+    color: #00ff00;
+    background-color: #121212;
+}
+
+/* Анимация появления слева */
+@keyframes slideInFromLeft {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+body, header, main, footer, .back-button {
+    animation: slideInFromLeft 1s ease-out;
+}

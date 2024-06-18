@@ -1,0 +1,319 @@
+body {
+    font-family: 'Comfortaa', cursive;
+    background-color: #121212;
+    color: #f0f0f0;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+header {
+    text-align: center;
+    padding: 1em;
+    background: #1e1e1e;
+    border-bottom: 2px solid #00ff00;
+}
+
+/* Полоса прокрутки */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+/* Полоса прокрутки */
+::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+/* Ползунок прокрутки */
+::-webkit-scrollbar-thumb {
+    background-color: #00ff00;
+    border-radius: 10px;
+    border: 3px solid #121212;
+}
+
+main {
+    padding: 2em;
+}
+
+h2, h3 {
+    color: #00ff00;
+}
+
+p, ul, li {
+    line-height: 1.6;
+}
+
+.quiz-question {
+    margin-bottom: 1em;
+}
+
+input[type="radio"] {
+    accent-color: #00ff00;
+}
+
+pre {
+    background: #1e1e1e;
+    border: 2px solid #00ff00;
+    padding: 1em;
+    overflow: auto;
+    transition: transform 0.3s;
+    cursor: pointer;
+    position: relative;
+}
+
+pre:hover {
+    transform: scale(1.05);
+}
+
+code {
+    display: block;
+    white-space: pre-wrap;
+}
+
+img {
+    max-width: 100%;
+    border: 2px solid #00ff00;
+    margin: 1em 0;
+}
+
+#copy-tooltip {
+    position: fixed;
+    background: #00ff00;
+    color: #1e1e1e;
+    padding: 0.5em;
+    border-radius: 5px;
+    display: none;
+    z-index: 1000;
+    animation: fadeinout 2s;
+}
+
+#copy-tooltip.show {
+    display: block;
+}
+
+@keyframes fadeinout {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+@keyframes scroll {
+    0% {
+        opacity: 0;
+        transform: translateX(-100%);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+section, .btn {
+    animation: scroll 1s ease-out;
+}
+
+@keyframes pixelate {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--offset-x), var(--offset-y)) scale(1);
+        opacity: 0;
+    }
+}
+
+.pixel-effect {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: #00ff00;
+    animation: pixelate 1s forwards;
+    pointer-events: none;
+    z-index: 10000;
+}
+
+.btn {
+    background: none;
+    color: #f0f0f0;
+    border: 2px solid #00ff00;
+    padding: 0.5em 1em;
+    cursor: pointer;
+    transition: transform 0.3s;
+    display: inline-block;
+    margin-top: 1em;
+    font-size: 1em;
+    border-radius: 5px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+    animation: scroll 1s ease-out;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(0, 255, 0, 0.1);
+    transition: all 0.5s;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    pointer-events: none;
+}
+
+.btn:hover::before {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.btn:active::before {
+    background: rgba(0, 255, 0, 0.2);
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+.btn:hover {
+    transform: scale(1.05);
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+/* Для всех браузеров */
+::selection {
+    background: #00ff00;
+    color: black; /* Цвет текста при выделении */
+}
+
+/* Для Mozilla Firefox */
+::-moz-selection {
+    background: #00ff00;
+    color: black; /* Цвет текста при выделении */
+}
+
+/* Значок переключения темы */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+/* Темная тема */
+body.dark-theme {
+    background-color: #121212;
+    color: #f0f0f0;
+}
+
+body.dark-theme header {
+    background: #1e1e1e;
+}
+
+body.dark-theme .theme-toggle {
+    background-color: #f0f0f0; /* Белый значок */
+    border: 2px solid #00ff00; /* Зеленый бордер */
+}
+
+body.dark-theme pre {
+    color: #f0f0f0; /* Код тоже белый */
+}
+
+body.dark-theme .btn {
+    background-color: #121212; /* Цвет фона кнопки такой же, как и бэкграунд */
+    color: #f0f0f0; /* Текст внутри кнопки белый */
+}
+
+/* Светлая тема */
+body.light-theme {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+body.light-theme .theme-toggle {
+    background-color: #121212; /* Черный значок */
+    border: 2px solid #00ff00; /* Зеленый бордер */
+}
+
+body.light-theme header {
+    background: #f0f0f0;
+}
+
+body.light-theme pre {
+    color: #00ff00;
+}
+
+body.light-theme .btn {
+    background-color: #ffffff; /* Цвет фона кнопки такой же, как и бэкграунд */
+    color: #000000; /* Текст внутри кнопки черный */
+}
+
+/* Медиа-запросы для автоматической темы */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: #f0f0f0;
+    }
+
+    header {
+        background: #1e1e1e;
+    }
+
+    .theme-toggle {
+        background-color: #f0f0f0;
+        border: 2px solid #00ff00;
+    }
+
+    pre {
+        color: #f0f0f0;
+    }
+
+    .btn {
+        color: #f0f0f0;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    body {
+        background-color: #ffffff;
+        color: #000000;
+    }
+
+    header {
+        background: #f0f0f0;
+    }
+
+    .theme-toggle {
+        background-color: #121212;
+        border: 2px solid #00ff00;
+    }
+
+    pre {
+        color: #00ff00;
+    }
+
+    .btn {
+        color: #000000;
+    }
+}
+
+/* Подвал */
+footer {
+    text-align: center;
+    padding: 0.5em;
+    background: #1e1e1e;
+    color: #f0f0f0;
+    border-top: 2px solid #00ff00;
+    width: 100%;
+    bottom: 0;
+    font-size: 0.8em;
+}
